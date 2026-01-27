@@ -8,28 +8,36 @@ type Book = {
   author: string;
   pages: number;
 };
+
 function Home() {
   const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [author, setAuthor] = useState("");
   const [pages, setPages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const book: Book = { name, author, pages: Number(pages) };
+
+    const payload: Book = { name, author, pages: Number(pages) };
+
     try {
       const res = await fetch("/api/book/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(book)
+        body: JSON.stringify(payload)
       });
+
       if (!res.ok) {
         const txt = await res.text();
         throw new Error(txt || "Request failed");
       }
+
       const saved = (await res.json()) as Book;
       navigate(`/book/${encodeURIComponent(saved.name)}`, { state: saved });
+
       setName("");
       setAuthor("");
       setPages(0);
@@ -37,9 +45,11 @@ function Home() {
       setError(err instanceof Error ? err.message : "Unknown error");
     }
   }
+
   return (
     <div>
       <h1>books</h1>
+
       <form onSubmit={onSubmit}>
         <div>
           <label htmlFor="name">name</label>
@@ -50,6 +60,7 @@ function Home() {
             onChange={(e) => setName(e.target.value)}
           />
         </div>
+
         <div>
           <label htmlFor="author">author</label>
           <input
@@ -59,6 +70,7 @@ function Home() {
             onChange={(e) => setAuthor(e.target.value)}
           />
         </div>
+
         <div>
           <label htmlFor="pages">pages</label>
           <input
@@ -68,14 +80,17 @@ function Home() {
             onChange={(e) => setPages(Number(e.target.value))}
           />
         </div>
+
         <div>
           <input id="submit" type="submit" value="submit" />
         </div>
+
         {error && <p role="alert">{error}</p>}
       </form>
     </div>
   );
 }
+
 export default function App() {
   return (
     <Routes>

@@ -12,8 +12,7 @@ const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 1234;
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/booksdb";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/booksdb";
 
 if (process.env.NODE_ENV === "development") {
   app.use(cors({ origin: "http://localhost:3000" }));
@@ -51,5 +50,5 @@ async function start() {
     process.exit(1);
   }
 }
-//joo
+
 start();
