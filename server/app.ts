@@ -15,55 +15,40 @@ const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/booksdb";
 
 if (process.env.NODE_ENV === "development") {
-  app.use(
-    cors({
-      origin: "http://localhost:3000",
-    })
-  );
+  app.use(cors({ origin: "http://localhost:3000" }));
 }
 
-app.get("/", (_req, res) => {
-  res.send("Server is running");
-});
-
-app.get("/api/health", (_req, res) => {
-  res.json({ ok: true });
-});
-
 app.use("/api", bookRoutes);
-
-mongoose
-  .connect(MONGODB_URI)
-  .then(async () => {
-    const db = mongoose.connection.db;
-    if (db) {
-      try {
-        await db.createCollection("Books");
-      } catch (e: any) {
-        if (e?.code !== 48) throw e;
-      }
-
-      try {
-        await db.createCollection("books");
-      } catch (e: any) {
-        if (e?.code !== 48) throw e;
-      }
-    }
-    console.log("Mongo working good:", MONGODB_URI);
-  })
-  .catch((e) => {
-    console.error("Mongo error", e);
-  });
 
 if (process.env.NODE_ENV === "production") {
   const buildPath = path.resolve(__dirname, "../../client/build");
   app.use(express.static(buildPath));
-
   app.get("*", (_req, res) => {
     res.sendFile(path.join(buildPath, "index.html"));
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Server running fine on http://localhost:${PORT}`);
+async function ensureBooksCollection() {
+  const db = mongoose.connection.db;
+  if (!db) return;
+
+  try {
+    await db.createCollection("Books");
+  } catch (e: any) {
+    if (e?.code !== 48) throw e;
+  }
+}
+
+async function start() {
+  await mongoose.connect(MONGODB_URI);
+  await ensureBooksCollection();
+
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+start().catch((e) => {
+  console.error("Mongo connection error:", e);
+  process.exit(1);
 });

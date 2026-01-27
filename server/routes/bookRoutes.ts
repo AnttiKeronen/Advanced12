@@ -3,7 +3,7 @@ import Book from "../models/Book";
 
 const router = Router();
 
-router.post(["/book", "/book/"], async (req, res) => {
+router.post(["/book/", "/book"], async (req, res) => {
   try {
     const { name, author, pages } = req.body ?? {};
 
@@ -19,11 +19,7 @@ router.post(["/book", "/book/"], async (req, res) => {
       typeof author !== "string" ||
       !Number.isFinite(pagesNumber)
     ) {
-      return res
-        .status(400)
-        .send(
-          "Invalid body. Expected { name: string, author: string, pages: number }"
-        );
+      return res.status(400).send("Invalid body");
     }
 
     const created = await Book.create({ name, author, pages: pagesNumber });
@@ -32,34 +28,6 @@ router.post(["/book", "/book/"], async (req, res) => {
       name: created.name,
       author: created.author,
       pages: created.pages,
-    });
-  } catch {
-    return res.status(500).send("Server error");
-  }
-});
-
-router.get(["/books", "/books/"], async (_req, res) => {
-  try {
-    const books = await Book.find({}).lean();
-    return res.json(
-      books.map((b) => ({ name: b.name, author: b.author, pages: b.pages }))
-    );
-  } catch {
-    return res.status(500).send("Server error");
-  }
-});
-
-router.get(["/book/:name", "/book/:name/"], async (req, res) => {
-  try {
-    const decoded = decodeURIComponent(req.params.name);
-
-    const found = await Book.findOne({ name: decoded }).lean();
-    if (!found) return res.status(404).send("Book not found");
-
-    return res.json({
-      name: found.name,
-      author: found.author,
-      pages: found.pages,
     });
   } catch {
     return res.status(500).send("Server error");
