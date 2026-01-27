@@ -27,10 +27,21 @@ app.get("/api/health", (_req, res) => {
 app.use("/api", bookRoutes);
 mongoose
   .connect(MONGODB_URI)
-  .then(() => console.log("Mongo working good:", MONGODB_URI))
+  .then(async () => {
+    console.log("Mongo working good:", MONGODB_URI);
+    const db = mongoose.connection.db;
+    if (!db) return;
+    const existing = await db.listCollections().toArray();
+    const names = new Set(existing.map((c) => c.name));
+    if (!names.has("Books")) {
+      await db.createCollection("Books");
+    }
+    if (!names.has("books")) {
+      await db.createCollection("books");
+    }
+  })
   .catch((e) => {
     console.error("Mongo error", e);
-    console.error("Server wrong");
   });
 if (process.env.NODE_ENV === "production") {
   const buildPath = path.resolve(__dirname, "../../client/build");
