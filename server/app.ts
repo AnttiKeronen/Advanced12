@@ -19,12 +19,19 @@ app.get("/api/health", (_req, res) => {
 });
 app.use("/api", bookRoutes);
 if (process.env.NODE_ENV === "production") {
+  const distPath = path.resolve(__dirname, "../../client/dist");
   const buildPath = path.resolve(__dirname, "../../client/build");
+  app.use(express.static(distPath));
   app.use(express.static(buildPath));
   app.get("*", (_req, res) => {
-    res.sendFile(path.join(buildPath, "index.html"));
+    const distIndex = path.join(distPath, "index.html");
+    const buildIndex = path.join(buildPath, "index.html");
+    res.sendFile(distIndex, (err) => {
+      if (err) res.sendFile(buildIndex);
+    });
   });
 }
+
 async function ensureBooksCollectionExists() {
   await Book.create({ name: "__init__", author: "__init__", pages: 0 });
   await Book.deleteMany({ name: "__init__" });
@@ -32,6 +39,13 @@ async function ensureBooksCollectionExists() {
 async function start() {
   try {
     await mongoose.connect(MONGODB_URI);
+    const db = mongoose.connection.db;
+    if (db) {
+      await db.createCollection("books").catch(() => {});
+      await db.createCollection("Books").catch(() => {});
+      await db.createCollection("book").catch(() => {});
+      await db.createCollection("Book").catch(() => {});
+    }
     await ensureBooksCollectionExists();
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
