@@ -7,23 +7,17 @@ import bookRoutes from "./routes/bookRoutes";
 import Book from "./models/Book";
 
 dotenv.config();
-
 const app = express();
 app.use(express.json());
-
 const PORT = process.env.PORT ? Number(process.env.PORT) : 1234;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/booksdb";
-
 if (process.env.NODE_ENV === "development") {
   app.use(cors({ origin: "http://localhost:3000" }));
 }
-
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
-
 app.use("/api", bookRoutes);
-
 if (process.env.NODE_ENV === "production") {
   const buildPath = path.resolve(__dirname, "../../client/build");
   app.use(express.static(buildPath));
@@ -31,17 +25,14 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(buildPath, "index.html"));
   });
 }
-
 async function ensureBooksCollectionExists() {
   await Book.create({ name: "__init__", author: "__init__", pages: 0 });
   await Book.deleteMany({ name: "__init__" });
 }
-
 async function start() {
   try {
     await mongoose.connect(MONGODB_URI);
     await ensureBooksCollectionExists();
-
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
@@ -50,5 +41,4 @@ async function start() {
     process.exit(1);
   }
 }
-
 start();

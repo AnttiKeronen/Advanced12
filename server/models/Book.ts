@@ -6,7 +6,6 @@ const BookSchema = new mongoose.Schema(
     author: { type: String, required: true },
     pages: { type: Number, required: true }
   },
-  { collection: "Books" }
+  { collection: "books" }
 );
-
 export default mongoose.model("Book", BookSchema);
